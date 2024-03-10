@@ -23,17 +23,23 @@ void APlayerMovement::BeginPlay()
 // Called every frame
 void APlayerMovement::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
 
-	FVector CurrentLocation = GetActorLocation();
+	PlayerMovement(DeltaTime);
+	PlayerRotate(DeltaTime);
+}
 
-	CurrentLocation = CurrentLocation + (PlatformVelocity * DeltaTime);
-
+void APlayerMovement::PlayerMovement(float DeltaTime)
+{
+	FVector CurrentLocation = GetActorLocation(); // current location of the cube. that is attached to script
+	CurrentLocation = CurrentLocation + (PlatformVelocity * DeltaTime); //its updating the location of the "Actor (Cube)" based on platformvelocity (x = 100, y = 0, z = 0. * deltatime to keep it the same on any pc slower or faster)
 	SetActorLocation(CurrentLocation);
 
+	//FVector::Dist calculates the eucildean distance between to vectors, start and current
 	float DistanceMoved = FVector::Dist(StartLocation, CurrentLocation);
 
-	
-	if (DistanceMoved > MoveDistance)
+	// simple if statement that checks if the cube moved less thant distancemoved which is assigned to 500. if yes then reverse direction
+	if (DistanceMoved > MoveDistance) 
 	{
 		
 		FVector MoveDirection = PlatformVelocity.GetSafeNormal();
@@ -42,4 +48,14 @@ void APlayerMovement::Tick(float DeltaTime)
 		PlatformVelocity = -PlatformVelocity;
 	}
 }
+
+void APlayerMovement::PlayerRotate(float DeltaTime)
+{
+	AddActorLocalRotation(RotationVelocity * DeltaTime);
+
+	
+
+}
+
+
 
