@@ -30,5 +30,20 @@ void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis(TEXT("MovingForward"), this, &AWorkerCharacter::MovingForward);
+
+	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
+
 }
+
+void AWorkerCharacter::MovingForward(float AxisValue)
+{
+	AddMovementInput(GetActorForwardVector() * AxisValue);
+}
+
+// void AWorkerCharacter::LookUp(float AxisValue)
+// {
+// 	AddControllerPitchInput(AxisValue);
+// }
+
 
