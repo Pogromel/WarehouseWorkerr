@@ -32,4 +32,8 @@ private:
 
 	void LookUp(float AxisValue); // passes value from input system in this case Mouse Up or Mouse Down would be 1 or -1
 
+	void MovingSideways(float AxisValue);
+
+	void LookSideways(float AxisValue);
+
 };

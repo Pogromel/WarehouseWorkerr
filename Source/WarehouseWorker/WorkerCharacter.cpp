@@ -32,15 +32,22 @@ void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAxis(TEXT("MovingForward"), this, &AWorkerCharacter::MovingForward);
 
-	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis(TEXT("MovingSideways"), this, &AWorkerCharacter::MovingSideways);
 
+
+	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis(TEXT("LookSideways"), this, &APawn::AddControllerYawInput);
 }
 
 void AWorkerCharacter::MovingForward(float AxisValue)
 {
 	AddMovementInput(GetActorForwardVector() * AxisValue);
 }
-
+void AWorkerCharacter::MovingSideways(float AxisValue)
+{
+	AddMovementInput(GetActorRightVector() * AxisValue);
+	
+}
 
 
 
