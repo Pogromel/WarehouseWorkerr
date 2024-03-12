@@ -41,9 +41,6 @@ void AWorkerCharacter::MovingForward(float AxisValue)
 	AddMovementInput(GetActorForwardVector() * AxisValue);
 }
 
-// void AWorkerCharacter::LookUp(float AxisValue)
-// {
-// 	AddControllerPitchInput(AxisValue);
-// }
+
 
 

@@ -28,8 +28,8 @@ public:
 
 
 private:
-	void MovingForward(float AxisValue);
+	void MovingForward(float AxisValue); // passes value from input system in this case W or S would be 1 or -1
 
-	void LookUp(float AxisValue);
+	void LookUp(float AxisValue); // passes value from input system in this case Mouse Up or Mouse Down would be 1 or -1
 
 };
