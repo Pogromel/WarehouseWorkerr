@@ -65,6 +65,12 @@ void APickup::Pickup()
 	MyMesh->SetSimulatePhysics(bHolding ? false : true);
 	MyMesh->SetCollisionEnabled(bHolding ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 	
+	if(!bHolding)
+	{
+		ForwardVector = PlayerCamera->GetForwardVector();
+		MyMesh->AddForce(ForwardVector*100000*MyMesh->GetMass());
+	}
+	
 }
 
 
