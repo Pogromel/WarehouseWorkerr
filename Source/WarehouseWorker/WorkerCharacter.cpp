@@ -3,7 +3,9 @@
 
 #include "WorkerCharacter.h"
 #include "DrawDebugHelpers.h"
-
+#include "Components/InputComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 // Sets default values
 AWorkerCharacter::AWorkerCharacter()
@@ -11,14 +13,6 @@ AWorkerCharacter::AWorkerCharacter()
 	// Set this character to call Tick() every frame. You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	HoldingComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingComponent"));
-	HoldingComponent->SetupAttachment(RootComponent); // Attach to the root component of the character
-
-	// Set the relative location of the holding component (You may need to adjust this based on your character's skeletal mesh)
-	HoldingComponent->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
-
-	CurrentItem = nullptr;
-	bCanMove = true;
 	
 
 }
@@ -27,6 +21,14 @@ AWorkerCharacter::AWorkerCharacter()
 void AWorkerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(WorkerCharacterContext, 0);
+		}
+	}
 	
 }
 
@@ -42,48 +44,59 @@ void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis(TEXT("MovingForward"), this, &AWorkerCharacter::MovingForward);
-
-	PlayerInputComponent->BindAxis(TEXT("MovingSideways"), this, &AWorkerCharacter::MovingSideways);
-
-	PlayerInputComponent->BindAction("Interaction", IE_Pressed, this, &AWorkerCharacter::OnAction);
-
-	PlayerInputComponent->BindAction("DeInteract", IE_Released, this, &AWorkerCharacter::OnActionReleased);
-	
-
-	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis(TEXT("LookSideways"), this, &APawn::AddControllerYawInput);
-}
-
-void AWorkerCharacter::MovingForward(float AxisValue)
-{
-	AddMovementInput(GetActorForwardVector() * AxisValue);
-}
-void AWorkerCharacter::MovingSideways(float AxisValue)
-{
-	AddMovementInput(GetActorRightVector() * AxisValue);
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AWorkerCharacter::Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWorkerCharacter::Look);
+		
+		EnhancedInputComponent->BindAction(PickUpAction, ETriggerEvent::Started, this, &AWorkerCharacter::PickUp);
+		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Started, this, &AWorkerCharacter::Drop);
+	}
 	
 }
 
-void AWorkerCharacter::OnAction()
+
+
+
+void AWorkerCharacter::Move(const FInputActionValue& Value)
 {
-	// Check if there's a current item to pick up
-	if (CurrentItem)
-	{
-		// Call the pickup function of the current item
-		CurrentItem->Pickup();
-	}
+	const FVector2D MovementVector = Value.Get<FVector2D>();
+	
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	AddMovementInput(ForwardDirection, MovementVector.Y);
+
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	AddMovementInput(RightDirection, MovementVector.X);
+
+	
+	
 }
 
-void AWorkerCharacter::OnActionReleased()
+void AWorkerCharacter::Look(const FInputActionValue& Value)
 {
-	// Release the item if it's currently being held
-	if (CurrentItem && CurrentItem->bHolding)
-	{
-		// Call the pickup function of the current item again to release it
-		CurrentItem->Pickup();
-	}
+	const FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	AddControllerPitchInput(LookAxisVector.Y);
+	AddControllerYawInput(LookAxisVector.X);
 }
+
+void AWorkerCharacter::PickUp(const FInputActionValue& Value)
+{
+	
+}
+
+void AWorkerCharacter::Drop(const FInputActionValue& Value)
+{
+	
+}
+
+
+
+
+
 
 
 

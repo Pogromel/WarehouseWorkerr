@@ -4,8 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Pickup.h"
+#include "Camera/CameraComponent.h"
+#include "InputActionValue.h"
 #include "WorkerCharacter.generated.h"
+
+class UInputMappingContext;
+class UInputAction;
 
 UCLASS()
 class WAREHOUSEWORKER_API AWorkerCharacter : public ACharacter
@@ -25,6 +29,27 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputMappingContext* WorkerCharacterContext;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* MovementAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* LookAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* PickUpAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* DropAction;
+
+
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void PickUp(const FInputActionValue& Value);
+	void Drop(const FInputActionValue& Value);
+	
 	
 
 public:	
@@ -36,38 +61,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditAnywhere)
-	class APickup* CurrentItem;
-
-
-	bool bCanMove;
-	bool bHoldingItem;
-
-	FVector HoldingComp;
-
-	FVector Start;
-	FVector ForwardVector;
-	FVector End;
-
-	FHitResult Hit;
-
-	FComponentQueryParams DefaultComponentQueryParams;
-	FCollisionResponseParams DefaultResponseParams;
 	
-
 private:
-	void MovingForward(float AxisValue); // passes value from input system in this case W or S would be 1 or -1
-
-	void OnAction();
-	void OnActionReleased();
 	
-	void LookUp(float AxisValue); // passes value from input system in this case Mouse Up or Mouse Down would be 1 or -1
 
-	void MovingSideways(float AxisValue);
-
-	void LookSideways(float AxisValue);
-
-	void ToggleMovement();
-	void ToggleItemPickup();
-
+	
 };
