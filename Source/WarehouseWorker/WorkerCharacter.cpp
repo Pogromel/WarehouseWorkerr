@@ -85,7 +85,36 @@ void AWorkerCharacter::Look(const FInputActionValue& Value)
 
 void AWorkerCharacter::PickUp(const FInputActionValue& Value)
 {
-	
+	UCameraComponent* Camera = (UCameraComponent*)(GetMesh()->GetChildComponent(0));
+	FVector CameraWorldLocation = Camera->GetComponentLocation();
+	FVector ForwardVector = Camera->GetForwardVector() * 300.0f;
+	FVector InteractionVector = CameraWorldLocation + ForwardVector;
+	FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+	RV_TraceParams.bTraceComplex = true;
+	RV_TraceParams.bTraceAsyncScene = true;
+	RV_TraceParams.bReturnPhysicalMaterial = false;
+	FHitResult RV_Hit(ForceInit);
+
+	bool HitActor = GetWorld()->LineTraceSingleByChannel(
+		RV_Hit,
+		CameraWorldLocation,
+		InteractionVector,
+		ECC_Visibility,
+		RV_TraceParams
+		);
+
+	if (HitActor)
+	{
+		if (RV_Hit.Actor->ActorHasTag(TEXT("Pickup")))
+		{
+			if (RV_Hit.Actor->ActorHasTag(TEXT("Box")))
+			{
+				UStaticMeshComponent* BoxMesh = (UStaticMeshComponent*)(GetMesh()->GetChildComponent(1));
+				BoxMesh->SetVisibility(true, true);
+			}
+			RV_Hit.Actor->Destroy();
+		}
+	}
 }
 
 void AWorkerCharacter::Drop(const FInputActionValue& Value)
