@@ -76,19 +76,23 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
 {
 
     
-    FVector Start = CameraComponent->GetComponentLocation();
-    FVector End = Start + CameraComponent->GetComponentRotation().Vector() * 5000.0f;
-  
-    FHitResult HitResult;
+    FVector Start = CameraComponent->GetComponentLocation(); // Point in the world where linetrace starts (starts from camera position)
+    FVector End = Start + CameraComponent->GetComponentRotation().Vector() * 5000.0f; // Point in the world where linetrace ends. in this case its ends from position that it started * 5000f that can be adjustable
+
+
+    
+    FHitResult HitResult; //hit results has many results that can be used for. it can be used shoting for example. In my case im using it to get specific actor name
+    
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(this);
      
-   if  (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_WorldStatic, Params))
+   if  (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_WorldStatic, Params))
    {
        UE_LOG(LogTemp, Warning, TEXT("HitSomething"));
-       if (HitResult.GetActor())
+       if (AActor* HitActor =  HitResult.GetActor())
        {
-           UE_LOG(LogTemp, Warning, TEXT("HitSomething: &S"), *HitResult.GetActor()->GetName());
+           UE_LOG(LogTemp, Warning, TEXT("HitSomething: %s"), *HitActor->GetName());
+           HitActor->AttachToComponent(Mesh1P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HoldingSocket") );
        }
    }
 }

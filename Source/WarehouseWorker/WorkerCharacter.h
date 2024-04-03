@@ -10,11 +10,14 @@
 
 class UInputMappingContext;
 class UInputAction;
+class USkeletalMeshComponent;
 
 UCLASS()
 class WAREHOUSEWORKER_API AWorkerCharacter : public ACharacter
 {
 	GENERATED_BODY()
+
+	
 
 public:
 	AWorkerCharacter();
@@ -22,8 +25,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	class USceneComponent* HoldingComponent;
 
+
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+	class USkeletalMeshComponent* Mesh1P;
+	
 	
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* CameraComponent;
@@ -51,5 +59,9 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	
+	FORCEINLINE class UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
 };
