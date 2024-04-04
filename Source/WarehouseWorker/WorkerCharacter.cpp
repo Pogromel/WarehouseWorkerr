@@ -77,7 +77,7 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
 
     
     FVector Start = CameraComponent->GetComponentLocation(); // Point in the world where linetrace starts (starts from camera position)
-    FVector End = Start + CameraComponent->GetComponentRotation().Vector() * 5000.0f; // Point in the world where linetrace ends. in this case its ends from position that it started * 5000f that can be adjustable
+    FVector End = Start + CameraComponent->GetComponentRotation().Vector() * 500.0f; // Point in the world where linetrace ends. in this case its ends from position that it started * 5000f that can be adjustable
 
 
     
@@ -92,7 +92,8 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
        if (AActor* HitActor =  HitResult.GetActor())
        {
            UE_LOG(LogTemp, Warning, TEXT("HitSomething: %s"), *HitActor->GetName());
-           HitActor->AttachToComponent(Mesh1P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HoldingSocket") );
+           HitActor->AttachToComponent(Walking__4__Skeleton, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HoldingSocket"));
+           //HitActor->AttachToComponent(MeshP1, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HoldingSocket"));
        }
    }
 }

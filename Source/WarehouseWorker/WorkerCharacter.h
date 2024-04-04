@@ -29,8 +29,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
-	class USkeletalMeshComponent* Mesh1P;
+	UPROPERTY(EditAnywhere, Category=Mesh2323)
+	class USkeletalMeshComponent* Walking__4__Skeleton;
 	
 	
 	UPROPERTY(EditAnywhere)
@@ -60,7 +60,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	FORCEINLINE class USkeletalMeshComponent* GetMeshP1() const { return Walking__4__Skeleton; }
 	
 	FORCEINLINE class UCameraComponent* GetCameraComponent() const { return CameraComponent; }
 
