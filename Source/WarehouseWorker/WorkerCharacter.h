@@ -22,20 +22,33 @@ class WAREHOUSEWORKER_API AWorkerCharacter : public ACharacter
 public:
 	AWorkerCharacter();
 
-	UPROPERTY(EditAnywhere)
-	class USceneComponent* HoldingComponent;
+
 
 
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, Category=Mesh2323)
-	class USkeletalMeshComponent* Walking__4__Skeleton;
-	
-	
+	UPROPERTY(EditAnywhere)
+	class USceneComponent* HoldingComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	USceneComponent* HoldingSpot;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	FName HoldingSocketName;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	float HoldingOffsetX;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	float HoldingOffsetY;
+
+	UPROPERTY(EditAnywhere, Category = "Pickup")
+	float HoldingOffsetZ;
+
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* CameraComponent;
-	
+
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* WorkerCharacterContext;
 
@@ -60,8 +73,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	FORCEINLINE class USkeletalMeshComponent* GetMeshP1() const { return Walking__4__Skeleton; }
 	
 	FORCEINLINE class UCameraComponent* GetCameraComponent() const { return CameraComponent; }
-
 };

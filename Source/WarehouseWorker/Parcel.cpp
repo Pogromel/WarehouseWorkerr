@@ -21,16 +21,7 @@ void AParcel::Tick(float DeltaTime)
 
 void AParcel::Pickup(AWorkerCharacter* Character)
 {
-	// Attach the parcel to the character's holding component
-	if (Character && Character->HoldingComponent)
-	{
-		SetActorEnableCollision(false); // Disable collision while the parcel is being held
-		SetActorHiddenInGame(true); // Hide the parcel while it's being held
-		AttachToComponent(Character->HoldingComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
-
-		// Store a reference to the holding character
-		HoldingCharacter = Character;
-	}
+	
 }
 
 void AParcel::Drop()

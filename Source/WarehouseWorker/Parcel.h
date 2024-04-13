@@ -18,7 +18,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	AWorkerCharacter* HoldingCharacter; 
+	
 
 public:
 	virtual void Tick(float DeltaTime) override;
