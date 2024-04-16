@@ -21,7 +21,7 @@ AWorkerCharacter::AWorkerCharacter()
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
     if (CameraComponent)
     {
-        CameraComponent->SetupAttachment(RootComponent); // Assuming RootComponent exists
+        CameraComponent->SetupAttachment(RootComponent); 
     }
    
     
@@ -90,17 +90,17 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
         AActor* HitActor =  HitResult.GetActor();
         if (HitActor)
         {
-            // Detach the actor first if it's already attached to something
+            
             HitActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
             
-            // Disable physics simulation
+            
             UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(HitActor->GetRootComponent());
             if (PrimitiveComponent)
             {
                 PrimitiveComponent->SetSimulatePhysics(false);
             }
             
-            // Attach the actor to the HoldingSpot's root component
+            
             HitActor->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
         }
     }
@@ -108,28 +108,23 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
 
 void AWorkerCharacter::Drop(const FInputActionValue& Value)
 {
-    // Check if there's an item held on the HoldingSpot
+    
     if (HoldingSpot->GetNumChildrenComponents() > 0)
     {
-        // Get the first child component, assuming it's the held item
+        
         USceneComponent* HeldItem = HoldingSpot->GetChildComponent(0);
         if (HeldItem)
         {
-            // Enable physics simulation
+           
             UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(HeldItem);
             if (PrimitiveComponent)
             {
                 PrimitiveComponent->SetSimulatePhysics(true);
             }
             
-            // Detach the held item from the HoldingSpot
+         
             HeldItem->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
             
-            // Optionally, you can add more logic here such as applying force to the dropped item
-            
-            // After dropping, you might want to nullify any reference to the held item
-            
-            // You can also add logging or other feedback to indicate that the item has been dropped
             UE_LOG(LogTemp, Warning, TEXT("Item dropped"));
         }
     }
