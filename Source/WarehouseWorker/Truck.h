@@ -4,7 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "InputActionValue.h"
 #include "Truck.generated.h"
+
+
+class UInputMappingContext;
+class UInputAction;
 
 UCLASS()
 class WAREHOUSEWORKER_API ATruck : public APawn
@@ -18,6 +23,18 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputMappingContext* WorkerCharacterContext;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* MovementTruck;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* TurnTrack;
+
+	void Move(const FInputActionValue& Value);
+	void Turn(const FInputActionValue& Value);
 
 private:
 
@@ -41,7 +58,16 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* Wheel_Rolls;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* Pallete;
+    	
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* Pallete2;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	USceneComponent* PlayerPosition;
 
 
 	

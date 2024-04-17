@@ -7,6 +7,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/InputComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 // Sets default values
 ATruck::ATruck()
@@ -34,6 +37,13 @@ ATruck::ATruck()
 
 	Wheel_Rolls = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wheel_Rolls Mesh"));
 	Wheel_Rolls->SetupAttachment(BaseMesh);
+	
+	Pallete = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete Mesh"));
+	Pallete->SetupAttachment(BaseMesh);
+	
+	Pallete2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete2 Mesh"));
+	Pallete2->SetupAttachment(BaseMesh);
+
 
 	
 }
@@ -42,6 +52,14 @@ ATruck::ATruck()
 void ATruck::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(WorkerCharacterContext, 0);
+		}
+	}
 	
 }
 
@@ -57,5 +75,25 @@ void ATruck::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(MovementTruck, ETriggerEvent::Triggered, this, &ATruck::Move);
+		EnhancedInputComponent->BindAction(TurnTrack, ETriggerEvent::Triggered, this, &ATruck::Turn);
+		
+	}
+
+}
+
+void ATruck::Move(const FInputActionValue& Value)
+{
+	float AxisValue = Value.Get<float>();
+	FVector ForwardVector = GetActorForwardVector();
+	AddMovementInput(ForwardVector, AxisValue);
+}
+
+void ATruck::Turn(const FInputActionValue& Value)
+{
+	float AxisValue = Value.Get<float>();
+	AddControllerYawInput(AxisValue);
 }
 
