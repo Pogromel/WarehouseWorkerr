@@ -1,11 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
-
-#include "WorkerCharacter.h"
-#include "DrawDebugHelpers.h"
-#include "Components/InputComponent.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
+#include "WorkerCharacter.h" 
+#include "Components/InputComponent.h" 
+#include "DrawDebugHelpers.h" 
+#include "EnhancedInputComponent.h" 
+#include "EnhancedInputSubsystems.h" 
+#include "Materials/MaterialInstanceDynamic.h" 
+#include "Components/PrimitiveComponent.h" 
 
 AWorkerCharacter::AWorkerCharacter()
 {
@@ -30,7 +30,7 @@ AWorkerCharacter::AWorkerCharacter()
 void AWorkerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
+    //Character Movement
     if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -38,6 +38,15 @@ void AWorkerCharacter::BeginPlay()
             Subsystem->AddMappingContext(WorkerCharacterContext, 0);
         }
     }
+    
+    //PostProcessEffect
+    if (FloorSplashPlane)
+    {
+        FloorSplashPlane->OnComponentBeginOverlap.AddDynamic(this, &AWorkerCharacter::OnFloorSplashPlaneCollision);
+    }
+
+    // Set up post-process material instance
+    SetPostProcessDynamicMaterialInstance();
 }
 
 void AWorkerCharacter::Tick(float DeltaTime)
@@ -129,6 +138,44 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
         }
     }
 }
+
+void AWorkerCharacter::SetPostProcessDynamicMaterialInstance()
+{
+    if (ScreenWaterSplashMaterial)
+    {
+        // Create dynamic material instance
+        PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(ScreenWaterSplashMaterial, this);
+
+        if (PostProcessMaterialInstance)
+        {
+            // Additional setup for the dynamic material instance if needed
+        }
+    }
+}
+
+void AWorkerCharacter::ActivatePostProcessEffect()
+{
+   
+    if (PostProcessMaterialInstance)
+    {
+        // Set scalar parameter to activate the effect
+        PostProcessMaterialInstance->SetScalarParameterValue(TEXT("ActivateEffect"), 1.0f);
+    }
+}
+
+void AWorkerCharacter::OnFloorSplashPlaneCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+
+    
+    if (OverlappedComponent == FloorSplashPlane)
+    {
+        // Activate the post-process effect
+        ActivatePostProcessEffect();
+    }
+}
+
+
+
 
 
 

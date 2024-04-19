@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SceneComponent.h"
 #include "InputActionValue.h"
 #include "WorkerCharacter.generated.h"
 
@@ -28,6 +29,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//Movement and pickup/drop
+	
 	UPROPERTY(EditAnywhere)
 	class USceneComponent* HoldingComponent;
 
@@ -63,6 +66,24 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* DropAction;
+
+	//Post Process
+	UPROPERTY(EditAnywhere)
+	UPrimitiveComponent* FloorSplashPlane;
+
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* ScreenWaterSplashMaterial;
+
+	UMaterialInstanceDynamic* PostProcessMaterialInstance;
+
+
+
+
+	//voids
+
+	void SetPostProcessDynamicMaterialInstance();
+	void ActivatePostProcessEffect();
+	void OnFloorSplashPlaneCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
