@@ -24,13 +24,7 @@ AWorkerCharacter::AWorkerCharacter()
     {
         CameraComponent->SetupAttachment(RootComponent); 
     }
-
-    //Timer Variables
-
-    TotalSecounds = 300; //5 Minutes total
-    RemainingSecounds = TotalSecounds;
-    MinutesTextBlock = nullptr;
-    SecoundsTextBlock = nullptr;
+    
     
     
    
@@ -57,9 +51,6 @@ void AWorkerCharacter::BeginPlay()
 
     // Set up post-process material instance
     SetPostProcessDynamicMaterialInstance();
-
-    //Starting Timer
-    StartTimer();
     
 }
 
@@ -67,8 +58,7 @@ void AWorkerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    //Updating Timer Display
-    UpdateTimerDisplay();
+    
 }
 
 void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
