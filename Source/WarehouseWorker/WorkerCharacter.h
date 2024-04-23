@@ -12,6 +12,8 @@
 class UInputMappingContext;
 class UInputAction;
 class USkeletalMeshComponent;
+class UTextBlock;
+
 
 UCLASS()
 class WAREHOUSEWORKER_API AWorkerCharacter : public ACharacter
@@ -89,6 +91,22 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void PickUp(const FInputActionValue& Value);
 	void Drop(const FInputActionValue& Value);
+
+	//Timer
+
+	int32 TotalSecounds;
+	int32 RemainingSecounds;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI")
+	UTextBlock* MinutesTextBlock;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI")
+	UTextBlock* SecoundsTextBlock;
+
+	void StartTimer();
+	void UpdateTimerDisplay();
+	FString FormatTime(int32 TimeInSecounds);
 
 public:
 	virtual void Tick(float DeltaTime) override;

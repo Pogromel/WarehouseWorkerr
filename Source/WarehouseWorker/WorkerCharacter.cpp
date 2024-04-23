@@ -11,18 +11,28 @@ AWorkerCharacter::AWorkerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
+    //Holding Position
     HoldingSpot = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingSpot"));
     if (HoldingSpot)
     {
         HoldingSpot->SetupAttachment(RootComponent);
     }
    
-    
+    //CameraPosition
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
     if (CameraComponent)
     {
         CameraComponent->SetupAttachment(RootComponent); 
     }
+
+    //Timer Variables
+
+    TotalSecounds = 300; //5 Minutes total
+    RemainingSecounds = TotalSecounds;
+    MinutesTextBlock = nullptr;
+    SecoundsTextBlock = nullptr;
+    
+    
    
     
 }
@@ -47,11 +57,18 @@ void AWorkerCharacter::BeginPlay()
 
     // Set up post-process material instance
     SetPostProcessDynamicMaterialInstance();
+
+    //Starting Timer
+    StartTimer();
+    
 }
 
 void AWorkerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    //Updating Timer Display
+    UpdateTimerDisplay();
 }
 
 void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -176,6 +193,7 @@ void AWorkerCharacter::OnFloorSplashPlaneCollision(UPrimitiveComponent* Overlapp
         ActivatePostProcessEffect();
     }
 }
+
 
 
 
