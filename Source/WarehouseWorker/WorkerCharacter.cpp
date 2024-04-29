@@ -7,6 +7,10 @@
 #include "Materials/MaterialInstanceDynamic.h" 
 #include "Components/PrimitiveComponent.h" 
 
+int32 MaxCarryLimit = 1;
+int32 CurrentCarryCount = 0;
+
+
 AWorkerCharacter::AWorkerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -16,6 +20,12 @@ AWorkerCharacter::AWorkerCharacter()
     if (HoldingSpot)
     {
         HoldingSpot->SetupAttachment(RootComponent);
+    }
+
+    PickupLine = CreateDefaultSubobject<USceneComponent>(TEXT("PickupLine"));
+    if (PickupLine)
+    {
+        PickupLine->SetupAttachment(RootComponent);
     }
    
     //CameraPosition
@@ -97,8 +107,15 @@ void AWorkerCharacter::Look(const FInputActionValue& Value)
 
 void AWorkerCharacter::PickUp(const FInputActionValue& Value)
 {
-    FVector Start = CameraComponent->GetComponentLocation();
-    FVector End = Start + CameraComponent->GetComponentRotation().Vector() * 500.0f;
+
+   if(CurrentCarryCount >= MaxCarryLimit)
+   {
+       return;
+   }
+    
+  
+    FVector Start = PickupLine->GetComponentLocation();
+    FVector End = Start + PickupLine->GetComponentRotation().Vector() * 500.0f;
 
     FHitResult HitResult;
     FCollisionQueryParams Params;
@@ -121,12 +138,19 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
             
             
             HitActor->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+         CurrentCarryCount++;
         }
     }
 }
 
 void AWorkerCharacter::Drop(const FInputActionValue& Value)
 {
+    if (CurrentCarryCount <= 0)
+    {
+        // Worker is not carrying any items, cannot drop
+        return;
+    }
     
     if (HoldingSpot->GetNumChildrenComponents() > 0)
     {
@@ -143,8 +167,9 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
             
          
             HeldItem->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-            
+            CurrentCarryCount--;
             UE_LOG(LogTemp, Warning, TEXT("Item dropped"));
+            
         }
     }
 }

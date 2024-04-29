@@ -40,6 +40,9 @@ protected:
 	USceneComponent* HoldingSpot;
 
 	UPROPERTY(EditAnywhere, Category = "Pickup")
+	USceneComponent* PickupLine;
+	
+	UPROPERTY(EditAnywhere, Category = "Pickup")
 	FName HoldingSocketName;
 
 	UPROPERTY(EditAnywhere, Category = "Pickup")
