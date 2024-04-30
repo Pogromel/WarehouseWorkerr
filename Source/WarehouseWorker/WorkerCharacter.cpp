@@ -168,7 +168,7 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
          
             HeldItem->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
             CurrentCarryCount--;
-            UE_LOG(LogTemp, Warning, TEXT("Item dropped"));
+            UE_LOG(LogTemp, Warning, TEXT("Item dropped")); 
             
         }
     }
