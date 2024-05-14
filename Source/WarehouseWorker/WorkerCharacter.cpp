@@ -2,10 +2,11 @@
 #include "WorkerCharacter.h" 
 #include "Components/InputComponent.h" 
 #include "DrawDebugHelpers.h" 
-#include "EnhancedInputComponent.h" 
+#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h" 
 #include "Materials/MaterialInstanceDynamic.h" 
-#include "Components/PrimitiveComponent.h" 
+#include "Components/PrimitiveComponent.h"
+
 
 int32 MaxCarryLimit = 1;
 int32 CurrentCarryCount = 0;
@@ -139,7 +140,7 @@ void AWorkerCharacter::PickUp(const FInputActionValue& Value)
             
             HitActor->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
-         CurrentCarryCount++;
+            CurrentCarryCount++;
         }
     }
 }
@@ -148,28 +149,42 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
 {
     if (CurrentCarryCount <= 0)
     {
-        // Worker is not carrying any items, cannot drop
-        return;
+        return;  // Nothing to drop
     }
     
     if (HoldingSpot->GetNumChildrenComponents() > 0)
     {
-        
         USceneComponent* HeldItem = HoldingSpot->GetChildComponent(0);
         if (HeldItem)
         {
-           
             UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(HeldItem);
             if (PrimitiveComponent)
             {
                 PrimitiveComponent->SetSimulatePhysics(true);
             }
             
-         
             HeldItem->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-            CurrentCarryCount--;
-            UE_LOG(LogTemp, Warning, TEXT("Item dropped")); 
-            
+            CurrentCarryCount--;  // Decrement the count as an item is dropped
+            UE_LOG(LogTemp, Warning, TEXT("Item dropped"));
+        }
+    }
+}
+
+
+void AWorkerCharacter::Interact(const FInputActionValue& Value)
+{
+    FVector Start = CameraComponent->GetComponentLocation();
+    FVector End = Start + CameraComponent->GetForwardVector() * 500.0f;
+    FHitResult HitResult;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+    {
+        AStackedPallete* Pallet = Cast<AStackedPallete>(HitResult.GetActor());
+        if (Pallet)
+        {
+            Pallet->GiveBoxToPlayer(this);
         }
     }
 }

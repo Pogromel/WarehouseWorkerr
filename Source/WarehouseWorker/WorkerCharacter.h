@@ -6,8 +6,10 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
+#include "StackedPallete.h"
 #include "InputActionValue.h"
 #include "WorkerCharacter.generated.h"
+
 
 class UInputMappingContext;
 class UInputAction;
@@ -72,6 +74,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* DropAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* InteractAction;
+
 	//Post Process
 	UPROPERTY(EditAnywhere)
 	UPrimitiveComponent* FloorSplashPlane;
@@ -94,6 +99,7 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void PickUp(const FInputActionValue& Value);
 	void Drop(const FInputActionValue& Value);
+	void Interact(const FInputActionValue& Value);
 
 	
 
