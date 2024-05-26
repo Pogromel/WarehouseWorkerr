@@ -1,11 +1,14 @@
 
-#include "WorkerCharacter.h" 
+#include "WorkerCharacter.h"
+#include "Truck.h"
 #include "Components/InputComponent.h" 
 #include "DrawDebugHelpers.h" 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h" 
 #include "Materials/MaterialInstanceDynamic.h" 
 #include "Components/PrimitiveComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Engine/Engine.h"
 
 
 int32 MaxCarryLimit = 1;
@@ -36,7 +39,8 @@ AWorkerCharacter::AWorkerCharacter()
         CameraComponent->SetupAttachment(RootComponent); 
     }
     
-    
+    bIsControllingTruck = false;
+    InteractionRange = 1000.f;
     
    
     
@@ -45,7 +49,7 @@ AWorkerCharacter::AWorkerCharacter()
 void AWorkerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    //Character Movement
+    
     if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -82,6 +86,7 @@ void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWorkerCharacter::Look);
         EnhancedInputComponent->BindAction(PickUpAction, ETriggerEvent::Started, this, &AWorkerCharacter::PickUp);
         EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Started, this, &AWorkerCharacter::Drop);
+        EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AWorkerCharacter::Interact);
     }
 }
 
@@ -90,13 +95,21 @@ void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AWorkerCharacter::Move(const FInputActionValue& Value)
 {
-    const FVector2D MovementVector = Value.Get<FVector2D>();
-    const FRotator Rotation = Controller->GetControlRotation();
-    const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-    const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-    AddMovementInput(ForwardDirection, MovementVector.Y);
-    const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-    AddMovementInput(RightDirection, MovementVector.X);
+    if (bIsControllingTruck && ControlledTruck)
+    {
+        ControlledTruck->Move(Value);
+    }
+    else
+    {
+        const FVector2D MovementVector = Value.Get<FVector2D>();
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+        const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+        AddMovementInput(ForwardDirection, MovementVector.Y);
+        const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+        AddMovementInput(RightDirection, MovementVector.X);
+    }
+    
 }
 
 void AWorkerCharacter::Look(const FInputActionValue& Value)
@@ -164,7 +177,7 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
             }
             
             HeldItem->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-            CurrentCarryCount--;  // Decrement the count as an item is dropped
+            CurrentCarryCount--;  
             UE_LOG(LogTemp, Warning, TEXT("Item dropped"));
         }
     }
@@ -173,56 +186,94 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
 
 void AWorkerCharacter::Interact(const FInputActionValue& Value)
 {
-    FVector Start = CameraComponent->GetComponentLocation();
-    FVector End = Start + CameraComponent->GetForwardVector() * 500.0f;
-    FHitResult HitResult;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(this);
-
-    if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+    if (bIsControllingTruck)
     {
-        AStackedPallete* Pallet = Cast<AStackedPallete>(HitResult.GetActor());
-        if (Pallet)
+        ExitTruck();
+    }
+    else
+    {
+        FVector Start = CameraComponent->GetComponentLocation();
+        FVector End = Start + CameraComponent->GetForwardVector() * InteractionRange;
+        FHitResult HitResult;
+        FCollisionQueryParams Params;
+        Params.AddIgnoredActor(this);
+        if(GetWorld()->LineTraceSingleByChannel(HitResult, Start,End, ECC_Visibility,Params))
         {
-            Pallet->GiveBoxToPlayer(this);
+            ATruck* Truck = Cast<ATruck>(HitResult.GetActor());
+            if (Truck)
+            {
+                EnterTruck(Truck);
+            }
+        }
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Interacting"));
         }
     }
 }
+
+void AWorkerCharacter::EnterTruck(ATruck* Truck)
+{
+    if(Truck)
+    {
+        bIsControllingTruck = true;
+        ControlledTruck = Truck;
+        AttachToComponent(Truck->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+        DisableInput(Cast<APlayerController>(GetController()));
+        Truck->EnableInput(Cast<APlayerController>(GetController()));
+        
+    }
+}
+
+void AWorkerCharacter::ExitTruck()
+{
+    if (ControlledTruck)
+    {
+        bIsControllingTruck = false;
+        DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        EnableInput(Cast<APlayerController>(GetController()));
+        ControlledTruck->DisableInput(Cast<APlayerController>(GetController()));
+        ControlledTruck = nullptr;
+    }
+}
+
+
+
+
 
 void AWorkerCharacter::SetPostProcessDynamicMaterialInstance()
 {
     if (ScreenWaterSplashMaterial)
     {
-        // Create dynamic material instance
         PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(ScreenWaterSplashMaterial, this);
-
-        if (PostProcessMaterialInstance)
+        if (!PostProcessMaterialInstance)
         {
-            // Additional setup for the dynamic material instance if needed
+            UE_LOG(LogTemp, Warning, TEXT("Failed to create PostProcessMaterialInstance"));
         }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ScreenWaterSplashMaterial is not set!"));
     }
 }
 
 void AWorkerCharacter::ActivatePostProcessEffect()
 {
-   
     if (PostProcessMaterialInstance)
     {
-        // Set scalar parameter to activate the effect
         PostProcessMaterialInstance->SetScalarParameterValue(TEXT("ActivateEffect"), 1.0f);
     }
 }
 
 void AWorkerCharacter::OnFloorSplashPlaneCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
-    
     if (OverlappedComponent == FloorSplashPlane)
     {
-        // Activate the post-process effect
         ActivatePostProcessEffect();
     }
 }
+
+
 
 
 

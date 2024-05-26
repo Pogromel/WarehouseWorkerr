@@ -15,6 +15,7 @@ class UInputMappingContext;
 class UInputAction;
 class USkeletalMeshComponent;
 class UTextBlock;
+class ATruck;
 
 
 UCLASS()
@@ -33,28 +34,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	//Movement and pickup/drop
 	
-	UPROPERTY(EditAnywhere)
-	class USceneComponent* HoldingComponent;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Pickup")
 	USceneComponent* HoldingSpot;
 
 	UPROPERTY(EditAnywhere, Category = "Pickup")
 	USceneComponent* PickupLine;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Pickup")
 	FName HoldingSocketName;
-
-	UPROPERTY(EditAnywhere, Category = "Pickup")
-	float HoldingOffsetX;
-
-	UPROPERTY(EditAnywhere, Category = "Pickup")
-	float HoldingOffsetY;
-
-	UPROPERTY(EditAnywhere, Category = "Pickup")
-	float HoldingOffsetZ;
 
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* CameraComponent;
@@ -77,15 +66,24 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* InteractAction;
 
-	//Post Process
 	UPROPERTY(EditAnywhere)
 	UPrimitiveComponent* FloorSplashPlane;
 
 	UPROPERTY(EditAnywhere)
 	UMaterialInterface* ScreenWaterSplashMaterial;
 
+	UPROPERTY()
 	UMaterialInstanceDynamic* PostProcessMaterialInstance;
 
+
+	UPROPERTY(EditAnywhere, Category = "Interaction")
+	float InteractionRange;
+
+	UPROPERTY()
+	bool bIsControllingTruck;
+
+	UPROPERTY()
+	ATruck* ControlledTruck;
 
 
 
@@ -100,6 +98,8 @@ protected:
 	void PickUp(const FInputActionValue& Value);
 	void Drop(const FInputActionValue& Value);
 	void Interact(const FInputActionValue& Value);
+	void EnterTruck(ATruck* Truck);
+	void ExitTruck();
 
 	
 

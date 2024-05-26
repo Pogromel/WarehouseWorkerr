@@ -1,8 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+
 
 
 #include "Truck.h"
-
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -10,42 +9,46 @@
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Materials/MaterialInstanceDynamic.h" 
+#include "Components/PrimitiveComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 ATruck::ATruck()
 {
- 	
-	PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = true;
 
-	SpringArm  = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
-	SpringArm->SetupAttachment(RootComponent);
+    CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Collider"));
+    RootComponent = CapsuleComp;
 
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
+    SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
+    SpringArm->SetupAttachment(RootComponent);
+    SpringArm->TargetArmLength = 500.f;  
+    SpringArm->bUsePawnControlRotation = true;
+	SpringArm->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
 
-	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Collider"));
-	RootComponent = CapsuleComp;
+    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);  
+    Camera->bUsePawnControlRotation = false;  
 
-	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Base Mesh"));
-	BaseMesh->SetupAttachment(CapsuleComp);
+    BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Base Mesh"));
+    BaseMesh->SetupAttachment(CapsuleComp);
 
-	Wheels = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wheels Mesh"));
-	Wheels->SetupAttachment(BaseMesh);
+    Wheels = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wheels Mesh"));
+    Wheels->SetupAttachment(BaseMesh);
 
-	Buttons = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Buttons Mesh"));
-	Buttons->SetupAttachment(BaseMesh);
+    Buttons = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Buttons Mesh"));
+    Buttons->SetupAttachment(BaseMesh);
 
-	Wheel_Rolls = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wheel_Rolls Mesh"));
-	Wheel_Rolls->SetupAttachment(BaseMesh);
-	
-	Pallete = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete Mesh"));
-	Pallete->SetupAttachment(BaseMesh);
-	
-	Pallete2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete2 Mesh"));
-	Pallete2->SetupAttachment(BaseMesh);
+    Wheel_Rolls = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wheel_Rolls Mesh"));
+    Wheel_Rolls->SetupAttachment(BaseMesh);
 
+    Pallete = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete Mesh"));
+    Pallete->SetupAttachment(BaseMesh);
 
-	
+    Pallete2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete2 Mesh"));
+    Pallete2->SetupAttachment(BaseMesh);
 }
 
 // Called when the game starts or when spawned
