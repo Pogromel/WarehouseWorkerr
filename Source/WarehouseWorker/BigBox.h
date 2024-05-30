@@ -4,26 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-
-#include "StackedPallete.generated.h"
+#include "BigBox.generated.h"
 
 UCLASS()
-class WAREHOUSEWORKER_API AStackedPallete : public AActor
+class WAREHOUSEWORKER_API ABigBox : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AStackedPallete();
-
-	
+	ABigBox();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:
+public:	
+	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SpawnBoxInHands(AWorkerCharacter* WorkerCharacter);
 };

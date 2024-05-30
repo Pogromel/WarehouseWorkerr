@@ -6,8 +6,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/FloatingPawnMovement.h"
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
+#include "InputMappingContext.h"
+#include "InputAction.h"
 #include "EnhancedInputSubsystems.h"
 #include "Materials/MaterialInstanceDynamic.h" 
 #include "Components/PrimitiveComponent.h"
@@ -19,21 +22,12 @@ ATruck::ATruck()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Collider"));
-    RootComponent = CapsuleComp;
+    
 
-    SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
-    SpringArm->SetupAttachment(RootComponent);
-    SpringArm->TargetArmLength = 500.f;  
-    SpringArm->bUsePawnControlRotation = true;
-	SpringArm->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
-
-    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-    Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);  
-    Camera->bUsePawnControlRotation = false;  
+    
 
     BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Base Mesh"));
-    BaseMesh->SetupAttachment(CapsuleComp);
+	RootComponent = BaseMesh;
 
     Wheels = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wheels Mesh"));
     Wheels->SetupAttachment(BaseMesh);
@@ -49,6 +43,15 @@ ATruck::ATruck()
 
     Pallete2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pallete2 Mesh"));
     Pallete2->SetupAttachment(BaseMesh);
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(BaseMesh);
+	SpringArm->TargetArmLength = 500.0f; 
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->CameraLagSpeed = 3.0f;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 }
 
 // Called when the game starts or when spawned
@@ -56,11 +59,11 @@ void ATruck::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(WorkerCharacterContext, 0);
+			Subsystem->AddMappingContext(TruckMappingContext, 0);
 		}
 	}
 	
@@ -80,23 +83,30 @@ void ATruck::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(MovementTruck, ETriggerEvent::Triggered, this, &ATruck::Move);
-		EnhancedInputComponent->BindAction(TurnTrack, ETriggerEvent::Triggered, this, &ATruck::Turn);
+		EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ATruck::MoveForward);
+		EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ATruck::MoveRight);
 		
 	}
 
 }
 
-void ATruck::Move(const FInputActionValue& Value)
+void ATruck::MoveForward(const FInputActionValue& Value)
 {
-	float AxisValue = Value.Get<float>();
-	FVector ForwardVector = GetActorForwardVector();
-	AddMovementInput(ForwardVector, AxisValue);
+	const float AxisValue = Value.Get<float>();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MoveForward AxisValue: %f"), AxisValue));
+	if (AxisValue != 0.0f)
+	{
+		AddMovementInput(GetActorForwardVector(), AxisValue * MovementSpeed);
+	}
 }
 
-void ATruck::Turn(const FInputActionValue& Value)
+void ATruck::MoveRight(const FInputActionValue& Value)
 {
-	float AxisValue = Value.Get<float>();
-	AddControllerYawInput(AxisValue);
+	const float AxisValue = Value.Get<float>();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("MoveRight AxisValue: %f"), AxisValue));
+	if (AxisValue != 0.0f)
+	{
+		AddActorLocalRotation(FRotator(0.f, AxisValue * TurnSpeed * GetWorld()->GetDeltaSeconds(), 0.f));
+	}
 }
 

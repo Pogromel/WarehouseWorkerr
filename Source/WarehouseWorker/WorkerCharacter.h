@@ -100,6 +100,7 @@ protected:
 	void Interact(const FInputActionValue& Value);
 	void EnterTruck(ATruck* Truck);
 	void ExitTruck();
+	void SpawnBoxInHands();
 
 	
 

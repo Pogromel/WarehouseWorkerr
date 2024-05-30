@@ -97,7 +97,7 @@ void AWorkerCharacter::Move(const FInputActionValue& Value)
 {
     if (bIsControllingTruck && ControlledTruck)
     {
-        ControlledTruck->Move(Value);
+        //ControlledTruck->MoveForward(Value);
     }
     else
     {
@@ -199,15 +199,40 @@ void AWorkerCharacter::Interact(const FInputActionValue& Value)
         Params.AddIgnoredActor(this);
         if(GetWorld()->LineTraceSingleByChannel(HitResult, Start,End, ECC_Visibility,Params))
         {
-            ATruck* Truck = Cast<ATruck>(HitResult.GetActor());
-            if (Truck)
+            if (ATruck* Truck = Cast<ATruck>(HitResult.GetActor()))
             {
                 EnterTruck(Truck);
             }
+            else if (AStackedPallete* Pallete = Cast<AStackedPallete>(HitResult.GetActor()))
+            {
+                Pallete->SpawnBoxInHands(this); // Call the function to spawn the box
+            }
+            
         }
         if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Interacting"));
+        }
+    }
+}
+
+void AWorkerCharacter::SpawnBoxInHands()
+{
+    if (CurrentCarryCount >= MaxCarryLimit)
+    {
+        return;
+    }
+
+    // Assuming the box is a predefined blueprint or class, replace 'ABox' with the actual class name
+    UWorld* World = GetWorld();
+    if (World)
+    {
+        // Replace 'ABox' with your box actor class
+        BP_BigBox* Box = World->SpawnActor<ABox>(BoxClass, HoldingSpot->GetComponentLocation(), FRotator::ZeroRotator);
+        if (Box)
+        {
+            Box->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+            CurrentCarryCount++;
         }
     }
 }

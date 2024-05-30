@@ -4,14 +4,13 @@
 #include "StackedPallete.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Actor.h"
+#include "WorkerCharacter.h"
 
 // Sets default values
 AStackedPallete::AStackedPallete()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisualMesh"));
-	RootComponent = VisualMesh;
+ 	
+	
 
 }
 
@@ -22,15 +21,11 @@ void AStackedPallete::BeginPlay()
 	
 }
 
-void AStackedPallete::GiveBoxToPlayer(AActor* Player)
+void AStackedPallete::SpawnBoxInHands(AWorkerCharacter* WorkerCharacter)
 {
-	if (!BoxBlueprint) return;
-
-	AActor* NewBox = GetWorld()->SpawnActor<AActor>(BoxBlueprint, GetActorLocation(), GetActorRotation());
-	if (NewBox)
+	if (WorkerCharacter)
 	{
-		NewBox->AttachToActor(Player, FAttachmentTransformRules::KeepWorldTransform);
-		
+		WorkerCharacter->SpawnBoxInHands();
 	}
 }
 
