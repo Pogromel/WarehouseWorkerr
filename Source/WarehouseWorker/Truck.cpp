@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Components/InputComponent.h"
+#include "Components/BoxComponent.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
@@ -16,6 +17,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/Engine.h"
+
 
 // Sets default values
 ATruck::ATruck()
@@ -52,6 +54,12 @@ ATruck::ATruck()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+
+	BoxTrigger-> CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTrigger"));
+	BoxTrigger-> SetupAttachment(BaseMesh);
+	BoxTrigger->SetBoxExtent(FVector(50.f, 50.f, 50.f));
+	BoxTrigger->SetCollisionProfileName(TEXT("Trigger"));
+	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ATruck::OnOverlapBegin); 
 }
 
 // Called when the game starts or when spawned
@@ -107,6 +115,16 @@ void ATruck::MoveRight(const FInputActionValue& Value)
 	if (AxisValue != 0.0f)
 	{
 		AddActorLocalRotation(FRotator(0.f, AxisValue * TurnSpeed * GetWorld()->GetDeltaSeconds(), 0.f));
+	}
+}
+
+
+void ATruck::OnOverlapBegin(class  UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Overlapping Actor: %s"), *OtherActor->GetName()));
+		OtherActor->Destroy();
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/SceneComponent.h"
 #include "InputActionValue.h"
 #include "Truck.generated.h"
@@ -61,8 +62,16 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class  UCameraComponent* Camera;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	class UBoxComponent* BoxTrigger;
+	
+
 	void MoveForward(const struct FInputActionValue& Value);
 	void MoveRight(const struct FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 	
 	UPROPERTY(EditAnywhere, Category = "Components")
 	float MovementSpeed = 1000.0f;
