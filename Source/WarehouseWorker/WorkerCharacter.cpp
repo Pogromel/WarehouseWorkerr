@@ -1,4 +1,3 @@
-
 #include "WorkerCharacter.h"
 #include "Truck.h"
 #include "Components/InputComponent.h" 
@@ -10,16 +9,13 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/Engine.h"
 
-
 int32 MaxCarryLimit = 1;
 int32 CurrentCarryCount = 0;
-
 
 AWorkerCharacter::AWorkerCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    //Holding Position
     HoldingSpot = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingSpot"));
     if (HoldingSpot)
     {
@@ -31,25 +27,21 @@ AWorkerCharacter::AWorkerCharacter()
     {
         PickupLine->SetupAttachment(RootComponent);
     }
-   
-    //CameraPosition
+
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
     if (CameraComponent)
     {
         CameraComponent->SetupAttachment(RootComponent); 
     }
-    
+
     bIsControllingTruck = false;
     InteractionRange = 1000.f;
-    
-   
-    
 }
 
 void AWorkerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    
+
     if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -57,23 +49,19 @@ void AWorkerCharacter::BeginPlay()
             Subsystem->AddMappingContext(WorkerCharacterContext, 0);
         }
     }
-    
-    //PostProcessEffect
+
     if (FloorSplashPlane)
     {
         FloorSplashPlane->OnComponentBeginOverlap.AddDynamic(this, &AWorkerCharacter::OnFloorSplashPlaneCollision);
     }
 
-    // Set up post-process material instance
     SetPostProcessDynamicMaterialInstance();
-    
 }
 
 void AWorkerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    
+    CheckIfFalling();
 }
 
 void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -89,9 +77,6 @@ void AWorkerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
         EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AWorkerCharacter::Interact);
     }
 }
-
-
-
 
 void AWorkerCharacter::Move(const FInputActionValue& Value)
 {
@@ -109,7 +94,6 @@ void AWorkerCharacter::Move(const FInputActionValue& Value)
         const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
         AddMovementInput(RightDirection, MovementVector.X);
     }
-    
 }
 
 void AWorkerCharacter::Look(const FInputActionValue& Value)
@@ -121,38 +105,32 @@ void AWorkerCharacter::Look(const FInputActionValue& Value)
 
 void AWorkerCharacter::PickUp(const FInputActionValue& Value)
 {
+    if(CurrentCarryCount >= MaxCarryLimit)
+    {
+        return;
+    }
 
-   if(CurrentCarryCount >= MaxCarryLimit)
-   {
-       return;
-   }
-    
-  
     FVector Start = PickupLine->GetComponentLocation();
     FVector End = Start + PickupLine->GetComponentRotation().Vector() * 500.0f;
 
     FHitResult HitResult;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(this);
-     
+
     if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_WorldStatic, Params))
     {
-        AActor* HitActor =  HitResult.GetActor();
+        AActor* HitActor = HitResult.GetActor();
         if (HitActor)
         {
-            
             HitActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-            
-            
+
             UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(HitActor->GetRootComponent());
             if (PrimitiveComponent)
             {
                 PrimitiveComponent->SetSimulatePhysics(false);
             }
-            
-            
-            HitActor->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
+            HitActor->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
             CurrentCarryCount++;
         }
     }
@@ -164,7 +142,7 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
     {
         return;  // Nothing to drop
     }
-    
+
     if (HoldingSpot->GetNumChildrenComponents() > 0)
     {
         USceneComponent* HeldItem = HoldingSpot->GetChildComponent(0);
@@ -175,14 +153,13 @@ void AWorkerCharacter::Drop(const FInputActionValue& Value)
             {
                 PrimitiveComponent->SetSimulatePhysics(true);
             }
-            
+
             HeldItem->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
             CurrentCarryCount--;  
             UE_LOG(LogTemp, Warning, TEXT("Item dropped"));
         }
     }
 }
-
 
 void AWorkerCharacter::Interact(const FInputActionValue& Value)
 {
@@ -194,21 +171,20 @@ void AWorkerCharacter::Interact(const FInputActionValue& Value)
     {
         FVector Start = CameraComponent->GetComponentLocation();
         FVector End = Start + CameraComponent->GetForwardVector() * InteractionRange;
-        FHitResult HitResult;
+       // FHitResult HitResult;
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(this);
-        if(GetWorld()->LineTraceSingleByChannel(HitResult, Start,End, ECC_Visibility,Params))
-        {
-            if (ATruck* Truck = Cast<ATruck>(HitResult.GetActor()))
-            {
-                EnterTruck(Truck);
-            }
-            else if (AStackedPallete* Pallete = Cast<AStackedPallete>(HitResult.GetActor()))
-            {
-                Pallete->SpawnBoxInHands(this); // Call the function to spawn the box
-            }
-            
-        }
+        // if(GetWorld()->LineTraceSingleByChannel(HitResult, Start,End, ECC_Visibility,Params))
+        // {
+        //     if (ATruck* Truck = Cast<ATruck>(HitResult.GetActor()))
+        //     {
+        //         EnterTruck(Truck);
+        //     }
+        //     else if (AStackedPallete* Pallete = Cast<AStackedPallete>(HitResult.GetActor()))
+        //     {
+        //         Pallete->SpawnBoxInHands(this); 
+        //     }
+        // }
         if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Interacting"));
@@ -225,18 +201,17 @@ void AWorkerCharacter::SpawnBoxInHands()
 
     // Assuming the box is a predefined blueprint or class, replace 'ABox' with the actual class name
     UWorld* World = GetWorld();
-    if (World)
-    {
-        // Replace 'ABox' with your box actor class
-        BP_BigBox* Box = World->SpawnActor<ABox>(BoxClass, HoldingSpot->GetComponentLocation(), FRotator::ZeroRotator);
-        if (Box)
-        {
-            Box->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-            CurrentCarryCount++;
-        }
-    }
+    // if (World)
+    // {
+    //     // Replace 'ABox' with your box actor class
+    //     BP_BigBox* Box = World->SpawnActor<BP_BigBox>(BoxClass, HoldingSpot->GetComponentLocation(), FRotator::ZeroRotator);
+    //     if (Box)
+    //     {
+    //         Box->AttachToComponent(HoldingSpot, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+    //         CurrentCarryCount++;
+    //     }
+    // }
 }
-
 void AWorkerCharacter::EnterTruck(ATruck* Truck)
 {
     if(Truck)
@@ -246,7 +221,6 @@ void AWorkerCharacter::EnterTruck(ATruck* Truck)
         AttachToComponent(Truck->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
         DisableInput(Cast<APlayerController>(GetController()));
         Truck->EnableInput(Cast<APlayerController>(GetController()));
-        
     }
 }
 
@@ -261,10 +235,6 @@ void AWorkerCharacter::ExitTruck()
         ControlledTruck = nullptr;
     }
 }
-
-
-
-
 
 void AWorkerCharacter::SetPostProcessDynamicMaterialInstance()
 {
@@ -298,12 +268,10 @@ void AWorkerCharacter::OnFloorSplashPlaneCollision(UPrimitiveComponent* Overlapp
     }
 }
 
-
-
-
-
-
-
-
-
-
+void AWorkerCharacter::CheckIfFalling()
+{
+    if (GetActorLocation().Z < FallLimit)
+    {
+        SetActorLocation(SafePosition);
+    }
+}
